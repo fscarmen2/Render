@@ -1,3 +1,4 @@
+const url = process.env.RENDER_EXTERNAL_HOSTNAME;
 const express = require("express");
 const app = express();
 const port = 3000;
@@ -117,7 +118,7 @@ app.get("/test", (req, res) => {
 //web保活
 function keep_web_alive() {
   // 1.请求主页，保持唤醒
-  exec("curl -m8 127.0.0.1:" + port, function (err, stdout, stderr) {
+  exec("curl -m8 https://" + url , function (err, stdout, stderr) {
     if (err) {
       console.log("保活-请求主页-命令行执行错误：" + err);
     } else {

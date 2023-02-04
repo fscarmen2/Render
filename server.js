@@ -9,12 +9,12 @@ var request = require("request");
 var fs = require("fs");
 var path = require("path");
 
-app.get("/", (req, res) => {
+app.get("/", function (req, res) {
   res.send("hello world");
 });
 
 //获取系统进程表
-app.get("/status", (req, res) => {
+app.get("/status", function (req, res) {
   let cmdStr = "ps -ef | grep  -v 'defunct'";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
@@ -26,7 +26,7 @@ app.get("/status", (req, res) => {
 });
 
 //获取系统监听端口
-app.get("/listen", (req, res) => {
+app.get("/listen", function (req, res) {
     let cmdStr = "ss -nltp";
     exec(cmdStr, function (err, stdout, stderr) {
       if (err) {
@@ -39,7 +39,7 @@ app.get("/listen", (req, res) => {
 
 
 //获取节点数据
-app.get("/list", (req, res) => {
+app.get("/list", function (req, res) {
     let cmdStr = "cat list";
     exec(cmdStr, function (err, stdout, stderr) {
       if (err) {
@@ -50,9 +50,8 @@ app.get("/list", (req, res) => {
     });
   });
 
-  
 //启动web
-app.get("/start", (req, res) => {
+app.get("/start", function (req, res) {
   let cmdStr = "[ -e entrypoint.sh ] && /bin/bash entrypoint.sh; chmod +x ./web.js && ./web.js -c ./config.json >/dev/null 2>&1 &";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
@@ -64,7 +63,7 @@ app.get("/start", (req, res) => {
 });
 
 //启动argo
-app.get("/argo", (req, res) => {
+app.get("/argo", function (req, res) {
   let cmdStr = "/bin/bash argo.sh >/dev/null 2>&1 &";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
@@ -76,7 +75,7 @@ app.get("/argo", (req, res) => {
 });
 
 //启动哪吒
-app.get("/nezha", (req, res) => {
+app.get("/nezha", function (req, res) {
   let cmdStr = "/bin/bash nezha.sh >/dev/null 2>&1 &";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
@@ -88,7 +87,7 @@ app.get("/nezha", (req, res) => {
 });
 
 //获取系统版本、内存信息
-app.get("/info", (req, res) => {
+app.get("/info", function (req, res) {
   let cmdStr = "cat /etc/*release | grep -E ^NAME";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
@@ -107,10 +106,14 @@ app.get("/info", (req, res) => {
 });
 
 //文件系统只读测试
-app.get("/test", (req, res) => {
+app.get("/test", function (req, res) {
   fs.writeFile("./test.txt", "这里是新创建的文件内容!", function (err) {
-    if (err) res.send("创建文件失败，文件系统权限为只读：" + err);
-    else res.send("创建文件成功，文件系统权限为非只读：");
+    if (err) {
+      res.send("创建文件失败，文件系统权限为只读：" + err);
+    }
+    else {
+      res.send("创建文件成功，文件系统权限为非只读：");
+    }
   });
 });
 
@@ -118,33 +121,34 @@ app.get("/test", (req, res) => {
 //web保活
 function keep_web_alive() {
   // 1.请求主页，保持唤醒
-  exec("curl -m8 https://" + url , function (err, stdout, stderr) {
-    if (err) {
-      console.log("保活-请求主页-命令行执行错误：" + err);
-    } else {
-      console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
+  request("https://" + url , function (error, response, body) {
+    if (!error) {
+      console.log("保活-请求主页-命令行执行成功，响应报文:" + body);
+    }
+    else {
+      console.log("保活-请求主页-命令行执行错误: " + error);
     }
   });
 
   // 2.请求服务器进程状态列表，若web没在运行，则调起
   exec("pgrep -laf web.js", function (err, stdout, stderr) {
-    if (!err) {
-      if (stdout.indexOf("./web.js -c ./config.json") != -1) {
-        console.log("web正在运行");
-      } else {
-        //web未运行，命令行调起
-        exec(
-          "chmod +x ./web.js && ./web.js -c ./config.json >/dev/null 2>&1 &",
-          function (err, stdout, stderr) {
-            if (err) {
-              console.log("保活-调起web-命令行执行错误：" + err);
-            } else {
-              console.log("保活-调起web-命令行执行成功!");
-            }
+    // 1.查后台系统进程，保持唤醒
+    if (stdout.includes("./web.js -c ./config.json")) {
+      console.log("web 正在运行");
+    }
+    else {
+      //web 未运行，命令行调起
+      exec(
+        "chmod +x web.js && ./web.js -c ./config.json >/dev/null 2>&1 &", function (err, stdout, stderr) {
+          if (err) {
+            console.log("保活-调起web-命令行执行错误:" + err);
           }
-        );
-      }
-    } else console.log("web保活-请求服务器进程表-命令行执行错误: " + err);
+          else {
+            console.log("保活-调起web-命令行执行成功!");
+          }
+        }
+      );
+    }
   });
 }
 setInterval(keep_web_alive, 10 * 1000);
@@ -152,62 +156,51 @@ setInterval(keep_web_alive, 10 * 1000);
 //Argo保活
 function keep_argo_alive() {
   exec("pgrep -laf cloudflared", function (err, stdout, stderr) {
-    // 1.请求主页，保持唤醒
-    if (!err) {
-      if (stdout.indexOf("cloudflared-linux-amd64") != -1) {
-        console.log("Argo 正在运行");
-      } else {
-        //Argo 未运行，命令行调起
-        exec(
-          "/bin/bash argo.sh >/dev/null 2>&1 &",
-          function (err, stdout, stderr) {
-            if (err) {
-              console.log("保活-调起Argo-命令行执行错误：" + err);
-            } else {
-              console.log("保活-调起Argo-命令行执行成功!");
-            }
+    // 1.查后台系统进程，保持唤醒
+    if (stdout.includes("./cloudflared tunnel --url http://localhost:8080 --no-autoupdate")) {
+      console.log("Argo 正在运行");
+    }
+    else {
+      //Argo 未运行，命令行调起
+      exec(
+        "bash argo.sh 2>&1 &", function (err, stdout, stderr) {
+          if (err) {
+            console.log("保活-调起Argo-命令行执行错误:" + err);
           }
-        );
-      }
-    } else console.log("Argo保活-请求服务器进程表-命令行执行错误: " + err);
+          else {
+            console.log("保活-调起Argo-命令行执行成功!");
+          }
+        }
+      );
+    }
   });
 }
 setInterval(keep_argo_alive, 30 * 1000);
 
-
 //哪吒保活
 function keep_nezha_alive() {
   exec("pgrep -laf nezha-agent", function (err, stdout, stderr) {
-    // 1.请求主页，保持唤醒
-    if (!err) {
-      if (stdout.indexOf("nezha-agent") != -1) {
-        console.log("哪吒正在运行");
-      } else {
-        //哪吒未运行，命令行调起
-        exec(
-          "/bin/bash nezha.sh >/dev/null 2>&1 &",
-          function (err, stdout, stderr) {
-            if (err) {
-              console.log("保活-调起哪吒-命令行执行错误：" + err);
-            } else {
-              console.log("保活-调起哪吒-命令行执行成功!");
-            }
+    // 1.查后台系统进程，保持唤醒
+    if (stdout.includes("./nezha-agent")) {
+      console.log("哪吒正在运行");
+    }
+    else {
+      //哪吒未运行，命令行调起
+      exec(
+        "bash nezha.sh 2>&1 &", function (err, stdout, stderr) {
+          if (err) {
+            console.log("保活-调起哪吒-命令行执行错误:" + err);
           }
-        );
-      }
-    } else console.log("哪吒保活-请求服务器进程表-命令行执行错误: " + err);
+          else {
+            console.log("保活-调起哪吒-命令行执行成功!");
+          }
+        }
+      );
+    }
   });
 }
 setInterval(keep_nezha_alive, 45 * 1000);
-// keepalive end 
-
-//下载web可执行文件
-app.get("/download", (req, res) => {
-  download_web((err) => {
-    if (err) res.send("下载文件失败");
-    else res.send("下载文件成功");
-  });
-});
+// keepalive end
 
 app.use(
   "/",
@@ -224,7 +217,7 @@ app.use(
 );
 
 //启动核心脚本运行web,哪吒和argo
-exec('bash entrypoint.sh', (err, stdout, stderr) => {
+exec("bash entrypoint.sh", function (err, stdout, stderr) {
   if (err) {
     console.error(err);
     return;

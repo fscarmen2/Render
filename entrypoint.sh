@@ -201,14 +201,18 @@ generate_argo() {
 #!/usr/bin/env bash
   
 # 下载并运行 Argo
-[ ! -e cloudflared ] && wget -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && chmod +x cloudflared
-if [[ -e cloudflared && ! \$(ps -ef) =~ cloudflared ]]; then
-  ./cloudflared tunnel --url http://localhost:8080 --no-autoupdate > argo.log 2>&1 &
-  sleep 15
-  ARGO=\$(cat argo.log | grep -oE "https://.*[a-z]+cloudflare.com" | sed "s#https://##")
-  VMESS="{ \"v\": \"2\", \"ps\": \"Argo-Vmess\", \"add\": \"www.digitalocean.com\", \"port\": \"443\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\${ARGO}\", \"path\": \"/${WSPATH}-vmess\", \"tls\": \"tls\", \"sni\": \"\${ARGO}\", \"alpn\": \"\" }"
+check_file() {
+  [ ! -e cloudflared ] && wget -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 && chmod +x cloudflared
+}
 
-  cat > list << EOF
+run() {
+  if [[ -e cloudflared && ! \$(ps -ef) =~ cloudflared ]]; then
+    ./cloudflared tunnel --url http://localhost:8080 --no-autoupdate > argo.log 2>&1 &
+    sleep 15
+    ARGO=\$(cat argo.log | grep -oE "https://.*[a-z]+cloudflare.com" | sed "s#https://##")
+    VMESS="{ \"v\": \"2\", \"ps\": \"Argo-Vmess\", \"add\": \"www.digitalocean.com\", \"port\": \"443\", \"id\": \"${UUID}\", \"aid\": \"0\", \"scy\": \"none\", \"net\": \"ws\", \"type\": \"none\", \"host\": \"\${ARGO}\", \"path\": \"/${WSPATH}-vmess\", \"tls\": \"tls\", \"sni\": \"\${ARGO}\", \"alpn\": \"\" }"
+
+    cat > list << EOF
 *******************************************
 V2-rayN:
 ----------------------------
@@ -242,8 +246,13 @@ Clash:
 - {name: Argo-Shadowsocks, type: ss, server: www.digitalocean.com, port: 443, cipher: chacha20-ietf-poly1305, password: ${UUID}, plugin: v2ray-plugin, plugin-opts: { mode: websocket, host: \${ARGO}, path: /${WSPATH}-shadowsocks, tls: true, skip-cert-verify: false, mux: false } }
 *******************************************
 EOF
-  cat list
+    cat list
   fi
+}
+
+check_file
+run
+wait
 ABC
 }
 
@@ -284,11 +293,13 @@ check_run
 check_variable
 download_agent
 run
+wait
 EOF
 }
 
 generate_config
 generate_argo
 generate_nezha
-[ -e nezha.sh ] && bash nezha.sh
-[ -e argo.sh ] && bash argo.sh
+[ -e nezha.sh ] && bash nezha.sh 2>&1 &
+[ -e argo.sh ] && bash argo.sh 2>&1 &
+wait

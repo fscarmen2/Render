@@ -1,7 +1,8 @@
 
 * 集成哪吒探针，可以自由选择是否安装
-* 自保活，永不睡眠
 * uuid，WS 路径既可以自定义，又或者使用默认值
+* 前端 js 定时和 pm2 配合保活，务求让恢复时间减到最小
+* 节点信息以 V2rayN / Clash / 小火箭 链接方式输出
 * 项目路径 `https://github.com/fscarmen2/Render`
 
 * PaaS 平台用到的变量
@@ -12,6 +13,8 @@
   | NEZHA_SERVER | 否 |        | 哪吒探针服务端的 IP 或域名 |
   | NEZHA_PORT   | 否 |        | 哪吒探针服务端的端口 |
   | NEZHA_KEY    | 否 |        | 哪吒探针客户端专用 Key |
+  | ARGO_TOKEN   | 否 |        | Argo 的 Token，ARGO_TOKEN 与 ARGO_DOMAIN 必需一起填了才能生效 |
+  | ARGO_DOMAIN  | 否 |        | Argo 的域名，ARGO_TOKEN 与 ARGO_DOMAIN 必需一起填了才能生效 |
 
 * 需要应用的 js
   | 命令 | 说明 |

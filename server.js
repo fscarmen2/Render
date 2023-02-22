@@ -1,4 +1,4 @@
-const url = process.env.RENDER_EXTERNAL_HOSTNAME;
+const url = process.env.RENDER_EXTERNAL_URL;
 const port = 3000;
 const express = require("express");
 const app = express();
@@ -86,15 +86,16 @@ app.get("/test", function (req, res) {
 //web保活
 function keep_web_alive() {
   // 请求主页，保持唤醒
-  request("https://" + url , function (error, response, body) {
-    if (!error) {
-      console.log("保活-请求主页-命令行执行成功，响应报文:" + body);
+  exec("curl -m8 " + url, function (err, stdout, stderr) {
+    if (err) {
+      console.log("保活-请求主页-命令行执行错误：" + err);
     }
     else {
-      console.log("保活-请求主页-命令行执行错误: " + error);
+      console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
     }
   });
 }
+
 setInterval(keep_web_alive, 10 * 1000);
 
 app.use(

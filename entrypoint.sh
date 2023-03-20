@@ -14,6 +14,7 @@ generate_config() {
     },
     "inbounds":[
         {
+            "listen":"127.0.0.1",
             "port":8080,
             "protocol":"vless",
             "settings":{
@@ -297,8 +298,7 @@ check_variable() {
 # 下载最新版本 Nezha Agent
 download_agent() {
   if [ ! -e nezha-agent ]; then
-    URL=\$(wget -qO- -4 "https://api.github.com/repos/naiba/nezha/releases/latest" | grep -o "https.*linux_amd64.zip")
-    wget -t 2 -T 10 -N \${URL}
+    wget -N https://github.com/naiba/nezha/releases/download/v0.14.9/nezha-agent_linux_amd64.zip
     unzip -qod ./ nezha-agent_linux_amd64.zip && rm -f nezha-agent_linux_amd64.zip
   fi
 }
@@ -311,15 +311,15 @@ EOF
 
 generate_pm2_file() {
   if [[ -n "${ARGO_AUTH}" && -n "${ARGO_DOMAIN}" ]]; then
-    [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --no-autoupdate --config tunnel.yml run"
-    [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --no-autoupdate run --token ${ARGO_AUTH}"
+    [[ $ARGO_AUTH =~ TunnelSecret ]] && ARGO_ARGS="tunnel --edge-ip-version auto --config tunnel.yml --url http://localhost:8080 run"
+    [[ $ARGO_AUTH =~ ^[A-Z0-9a-z=]{120,250}$ ]] && ARGO_ARGS="tunnel --edge-ip-version auto run --token ${ARGO_AUTH}"
   else
-    ARGO_ARGS="tunnel --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8080"
+    ARGO_ARGS="tunnel --edge-ip-version auto --no-autoupdate --logfile argo.log --loglevel info --url http://localhost:8080"
   fi
 
   if [[ -z "${NEZHA_SERVER}" || -z "${NEZHA_PORT}" || -z "${NEZHA_KEY}" ]]; then
     cat > ecosystem.config.js << EOF
-  module.exports = {
+module.exports = {
   "apps":[
       {
           "name":"web",

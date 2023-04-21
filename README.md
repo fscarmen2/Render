@@ -1,7 +1,7 @@
 * 使用 CloudFlare 的 Argo 隧道，同时兼容 Json / token / 临时 三种方式认证，使用TLS加密通信，可以将应用程序流量安全地传输到Cloudflare网络，提高了应用程序的安全性和可靠性。此外，Argo Tunnel也可以防止IP泄露和DDoS攻击等网络威胁
 * 解锁 chatGPT
 * 在浏览器查看系统各项信息，方便直观
-* 集成哪吒探针，可以自由选择是否安装
+* 集成哪吒探针，可以自由选择是否安装，支持 SSL/TLS 模式，适配 Nezha over Argo 项目: https://github.com/fscarmen2/Argo-Nezha-Service-Container
 * uuid，WS 路径既可以自定义，又或者使用默认值
 * 前端 js 定时和 pm2 配合保活，务求让恢复时间减到最小
 * 节点信息以 V2rayN / Clash / 小火箭 链接方式输出
@@ -12,13 +12,12 @@
   | ------------ | ------ | ------ | ------ |
   | UUID         | 否 | de04add9-5c68-8bab-950c-08cd5320df18 | 可在线生成 https://www.zxgj.cn/g/uuid |
   | WSPATH       | 否 | argo | 勿以 / 开头，各协议路径为 `/WSPATH-协议`，如 `/argo-vless`,`/argo-vmess`,`/argo-trojan`,`/argo-shadowsocks` |
-  | NEZHA_SERVER | 否 |        | 哪吒探针服务端的 IP 或域名 |
+  | NEZHA_SERVER | 否 |        | 哪吒探针与面板服务端数据通信的IP或域名 |
   | NEZHA_PORT   | 否 |        | 哪吒探针服务端的端口 |
   | NEZHA_KEY    | 否 |        | 哪吒探针客户端专用 Key |
+  | NEZHA_TLS    | 否 |        | 哪吒探针是否启用 SSL/TLS 加密 ，如不启用不要该变量，如要启用填"1" |
   | ARGO_AUTH    | 否 |        | Argo 的 Token 或者 json 值 |
-  | ARGO_DOMAIN  | 否 |        | Argo 的域名，须与 ARGO_AUTH 必需一起填了才能生效 |
-  | WEB_USERNAME | 否 | admin | 网页的用户名 |
-  | WEB_PASSWORD | 否 | password | 网页的密码 |
+  | ARGO_DOMAIN  | 否 |        | Argo 的域名，须与 ARGO_DOMAIN 必需一起填了才能生效 |
 
 * 需要应用的 js
   | 命令 | 说明 |

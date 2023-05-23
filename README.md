@@ -29,6 +29,7 @@
   | <URL>/list | 查看节点数据 |
   | <URL>/status | 查看后台进程 |
   | <URL>/listen | 查看后台监听端口 |
+  | <URL>/test	 | 测试是否为只读系统 |
 
 
 <img width="1011" alt="image" src="https://user-images.githubusercontent.com/92626977/215507678-ec03089e-4612-4cdc-880d-11470f64df0f.png">

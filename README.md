@@ -5,7 +5,7 @@
 * uuid，WS 路径既可以自定义，又或者使用默认值
 * 前端 js 定时和 pm2 配合保活，务求让恢复时间减到最小
 * 节点信息以 V2rayN / Clash / 小火箭 链接方式输出
-* 可以使用浏览器访问，使用 ttyd，ssh over http2
+* 可以使用浏览器使用 webssh 和 webftp，更方便管理系统
 * 项目路径 `https://github.com/fscarmen2/Render`
 
 * PaaS 平台用到的变量
@@ -22,6 +22,7 @@
   | WEB_USERNAME | 否 | admin  | 网页的用户名 |
   | WEB_PASSWORD | 否 | password | 网页的密码 |
   | SSH_DOMAIN   | 否 |        | webssh 的域名，用户名和密码就是 <WEB_USERNAME> 和 <WEB_PASSWORD> |
+  | FTP_DOMAIN   | 否 |        | webftp 的域名，用户名和密码就是 <WEB_USERNAME> 和 <WEB_PASSWORD> |  
 
 * 路径（path）
   | 命令 | 说明 |
@@ -42,9 +43,13 @@
 +---------+     argo     +---------+     http     +--------+    ssh    +-----------+
 | browser | <==========> | CF edge | <==========> |  ttyd  | <=======> | ssh server|
 +---------+     argo     +---------+   websocket  +--------+    ssh    +-----------+
+
++---------+     argo     +---------+     http     +--------------+    ftp    +-----------+
+| browser | <==========> | CF edge | <==========> | filebrowser  | <=======> | ftp server|
++---------+     argo     +---------+   websocket  +--------------+    ftp    +-----------+
 ```
 
-* ttyd 只能使用 Json 方式建的隧道，不能使用 Token
+* ttyd / filebrowser 使用 Json 方式建的隧道
   
 <img width="1643" alt="image" src="https://user-images.githubusercontent.com/92626977/235453084-a8c55417-18b4-4a47-9eef-ee3053564bff.png">
 <img width="1347" alt="image" src="https://user-images.githubusercontent.com/92626977/235453394-2d8fd1e9-02d0-4fa6-8c20-dda903fd06ae.png">
